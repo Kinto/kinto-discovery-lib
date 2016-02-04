@@ -49,18 +49,14 @@ describe("discovery library", () => {
     describe("With an already existing user URL", () => {
       userStorageURL = "https://my-kinto-instance.com/v1";
       beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {}, {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
           data: {url: userStorageURL}
-        }));
+        }, {}));
       });
 
-      it("should return the existing URL", (done) => {
-        registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .then((userURL) => {
-          console.log("we've got", userURL);
-          expect(userURL).to.eql("");
-          done();
-        });
+      it("should return the existing URL", () => {
+        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+        .should.become("");
       });
     });
   });
