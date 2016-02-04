@@ -1,0 +1,36 @@
+{
+  "name": "kinto-discovery",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "tdd": "node_modules/.bin/mocha -w --compilers js:babel/register 'tests/*_test.js'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinto/kinto-discovery.git"
+  },
+  "keywords": [
+    "rest",
+    "kinto",
+    "discovery"
+  ],
+  "author": "Mozilla <contact@mozilla.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Kinto/kinto-discovery/issues"
+  },
+  "homepage": "https://github.com/Kinto/kinto.js",
+  "devDependencies": {
+    "chai": "^3.2.0",
+    "chai-as-promised": "^5.0.0",
+    "eslint": "^1.2.0",
+    "mocha": "^2.4.5",
+    "sinon": "^1.14.1"
+  },
+  "dependencies": {
+    "babel": "^5.8.19",
+    "kinto": "^1.2.0",
+    "lru-cache": "^4.0.0"
+  }
+}
