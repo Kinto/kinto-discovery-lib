@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kinto/kinto-discovery.git"
+    "url": "https://github.com/kinto/kinto-discovery-lib.git"
   },
   "keywords": [
     "rest",
@@ -18,9 +18,9 @@
   "author": "Mozilla <contact@mozilla.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Kinto/kinto-discovery/issues"
+    "url": "https://github.com/Kinto/kinto-discovery-lib/issues"
   },
-  "homepage": "https://github.com/Kinto/kinto.js",
+  "homepage": "https://github.com/Kinto/kinto-discovery-lib.js",
   "devDependencies": {
     "chai": "^3.2.0",
     "chai-as-promised": "^5.0.0",
