@@ -13,6 +13,9 @@ export function fakeServerResponse(status, json, headers={}) {
     },
     text() {
       return JSON.stringify(json);
+    },
+    json(){
+      return Promise.resolve(json);
     }
   });
 }
