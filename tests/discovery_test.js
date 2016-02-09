@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
-import {getUserIDHash, registerUserURL} from "../lib/index.js";
+import {getUserIDHash, registerUserURL, retrieveUserURL} from "../lib/index.js";
 import { fakeServerResponse } from "./test_utils.js";
 
 chai.use(chaiAsPromised);
@@ -60,4 +60,27 @@ describe("discovery library", () => {
       });
     });
   });
+
+  describe("retrieveUserURL", () => {
+
+    const centralRepositoryURL = "http://central.kinto-storage.com/v1";
+    const headers = {}
+    let userStorageURL;
+
+    describe("With an already existing user URL", () => {
+      userStorageURL = "https://my-kinto-instance.com/v1";
+      const defaultServer = "https://default-kinto-instance.com/v1"
+      beforeEach(() => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
+          data: {url: userStorageURL}
+        }, {}));
+      });
+
+      it("should return the existing URL", () => {
+        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
+        .should.become(userStorageURL);
+      });
+    });
+  });
+
 });
