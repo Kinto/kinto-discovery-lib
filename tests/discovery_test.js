@@ -56,7 +56,7 @@ describe("discovery library", () => {
 
       it("should return the existing URL", () => {
         return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .should.become("");
+        .should.become(userStorageURL);
       });
     });
   });
