@@ -59,7 +59,64 @@ describe("discovery library", () => {
         .should.become(userStorageURL);
       });
     });
+
+    describe("when server returns a 5xx", () => {
+      userStorageURL = "https://my-kinto-instance.com/v1";
+      const defaultServer = "https://default-kinto-instance.com/v1"
+
+
+      it("should return an error in case of 501 ", () => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(501, {
+          data: {url: userStorageURL}
+          }, {} ));
+        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+        .should.be.rejectedWith(Error);
+      })
+
+      it("should return an error in case of 500", () => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(500, {
+          data: {url: userStorageURL}
+          }, {} ));
+        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+        .should.be.rejectedWith(Error);
+      })
+
+      it("should return an error in case of 503", () => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(503, {
+          data: {url: userStorageURL}
+          }, {} ));
+        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+        .should.be.rejectedWith(Error);
+      })
+     });
+
+
+    describe("if headers are empty", () => {
+      userStorageURL = "https://my-kinto-instance.com/v1";
+
+      it("should return an error message", () => {
+        registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+        .should.become(Error);
+      });
+    });
+
+
+  describe("Invalid headers", () => {
+    userStorageURL = "https://my-kinto-instance.com/v1";
+
+    beforeEach(() => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {
+        data: {url: userStorageURL}
+      }, {}));
+    });
+
+
+    it("should reject promise with error message", () => {
+      return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+      .should.be.rejectedWith(Error);
+    });
   });
+});
 
   describe("retrieveUserURL", () => {
 
@@ -146,6 +203,23 @@ describe("discovery library", () => {
         .should.become(defaultServer);
       });
     });
+
+    describe("Invalid headers", () => {
+
+      const defaultServer = "https://default-kinto-instance.com/v1"
+      beforeEach(() => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {
+          data: {url: userStorageURL}
+        }, {}));
+      });
+
+
+      it("should reject promise with error message", () => {
+        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
+        .should.be.rejectedWith(Error);
+      });
+    });
+
 
     describe("if default server is null", () => {
       it("should return message: default server is null", () => {
