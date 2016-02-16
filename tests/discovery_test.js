@@ -43,7 +43,7 @@ describe("discovery library", () => {
   describe("registerUserURL", () => {
 
     const centralRepositoryURL = "http://central.kinto-storage.com/v1";
-    const headers = {}
+    const headers = {'Authorization': 'Bearer 1234567'};
     let userStorageURL;
 
     describe("With an already existing user URL", () => {
@@ -93,7 +93,7 @@ describe("discovery library", () => {
 
     describe("if headers are empty", () => {
       userStorageURL = "https://my-kinto-instance.com/v1";
-
+      var headers = {};
       it("should return an error message", () => {
         registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
         .should.become(Error);
