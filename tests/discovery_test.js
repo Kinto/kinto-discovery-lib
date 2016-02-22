@@ -121,8 +121,18 @@ describe("discovery library", () => {
   describe("retrieveUserURL", () => {
 
     const centralRepositoryURL = "http://central.kinto-storage.com/v1";
-    const headers = {}
+    const headers = {'Authorization': 'Bearer 1234567'};
     let userStorageURL;
+
+    describe("if headers are empty", () => {
+      userStorageURL = "https://my-kinto-instance.com/v1";
+      const defaultServer = "https://default-kinto-instance.com/v1"
+      var headers = {};
+      it("should return an error message", () => {
+        retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
+        .should.become(Error);
+      });
+    });
 
     describe("when server returns a 5xx", () => {
       userStorageURL = "https://my-kinto-instance.com/v1";
