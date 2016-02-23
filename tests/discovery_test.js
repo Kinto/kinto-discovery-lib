@@ -12,11 +12,16 @@ chai.should();
 chai.config.includeStack = true;
 
 const root = typeof window === "object" ? window : global;
+var localStorage;
+var LocalStorage = require('node-localstorage').LocalStorage;
+localStorage = new LocalStorage('./lib/localStorage');
+
 
 describe("discovery library", () => {
   let sandbox;
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -91,12 +96,60 @@ describe("discovery library", () => {
      });
 
 
+         describe("does not fit in any case", () => {
+           const defaultServer = "https://default-kinto-instance.com/v1"
+           beforeEach(() => {
+             sandbox.stub(root, "fetch").returns(fakeServerResponse(550, { //any response apart from the if block cases
+               data: {url: userStorageURL}
+             }, {}));
+           });
+
+           it("should reject promise with error message", () => {
+             return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+             .should.be.rejectedWith(Error);
+           });
+         });
+
     describe("if headers are empty", () => {
       userStorageURL = "https://my-kinto-instance.com/v1";
       var headers = {};
       it("should return an error message", () => {
         registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
         .should.become(Error);
+      });
+    });
+
+    describe("When there is already a cached value", () => {
+      var key = 'kinto:server-url:' + 'userID';
+      const defaultServer = "https://default-kinto-instance.com/v1"
+      beforeEach(() => {
+        localStorage.setItem(key, userStorageURL);
+      });
+    afterEach(() => {
+      localStorage.removeItem(key);
+    });
+
+      it("should return the cachedURL", () => {
+        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
+        .should.become(localStorage.getItem(key));
+      });
+    });
+
+    describe("When there is already a cached value, fetch is not entered", () => {
+      var key = 'kinto:server-url:' + 'userID';
+      const defaultServer = "https://default-kinto-instance.com/v1";
+      var cachedURL;
+      beforeEach(() => {
+        localStorage.setItem(key, "www.abcdefg.com");
+        cachedURL = localStorage.getItem(key);
+      });
+    afterEach(() => {
+      localStorage.removeItem(key);
+    });
+
+      it("should return the cachedURL", () => {
+        return registerUserURL("userID", centralRepositoryURL, headers, defaultServer)
+        .should.become(cachedURL);
       });
     });
 
@@ -198,6 +251,40 @@ describe("discovery library", () => {
       });
     });
 
+    describe("When there is already a cached value", () => {
+      var key = 'kinto:server-url:' + 'userID';
+      const defaultServer = "https://default-kinto-instance.com/v1"
+      beforeEach(() => {
+        localStorage.setItem(key, userStorageURL);
+      });
+    afterEach(() => {
+      localStorage.removeItem(key);
+    });
+
+      it("should return the cachedURL", () => {
+        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
+        .should.become(localStorage.getItem(key));
+      });
+    });
+
+    describe("When there is already a cached value, fetch is not entered", () => {
+      var key = 'kinto:server-url:' + 'userID';
+      const defaultServer = "https://default-kinto-instance.com/v1";
+      var cachedURL;
+      beforeEach(() => {
+        localStorage.setItem(key, "www.abcdefg.com");
+        cachedURL = localStorage.getItem(key);
+      });
+    afterEach(() => {
+      localStorage.removeItem(key);
+    });
+
+      it("should return the cachedURL", () => {
+        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
+        .should.become(cachedURL);
+      });
+    });
+
     describe("First time access or error 403", () => {
 
       const defaultServer = "https://default-kinto-instance.com/v1"
@@ -230,6 +317,20 @@ describe("discovery library", () => {
       });
     });
 
+
+    describe("does not fit in any case", () => {
+      const defaultServer = "https://default-kinto-instance.com/v1"
+      beforeEach(() => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(550, { //any response apart from the if block cases
+          data: {url: userStorageURL}
+        }, {}));
+      });
+
+      it("should reject promise with error message", () => {
+        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
+        .should.be.rejectedWith(Error);
+      });
+    });
 
     describe("if default server is null", () => {
       it("should return message: default server is null", () => {
