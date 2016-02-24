@@ -4,8 +4,9 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "tdd": "node_modules/.bin/mocha -w --compilers js:babel/register 'tests/*_test.js'",
-    "test": "node_modules/.bin/mocha --compilers js:babel/register 'tests/*_test.js'"
+    "dist": "mkdir -p dist && rm -f dist/*.* && node_modules/.bin/browserify -s KintoDiscovery -g uglifyify -e lib/index.js -o dist/kinto-discovery.min.js -t [ babelify ]",
+    "tdd": "npm run test -- --watch",
+    "test": "node_modules/.bin/babel-node node_modules/.bin/_mocha 'tests/**/*_test.js'"
   },
   "repository": {
     "type": "git",
@@ -23,15 +24,21 @@
   },
   "homepage": "https://github.com/Kinto/kinto-discovery-lib/",
   "devDependencies": {
+    "babel-cli": "^6.5.1",
+    "babel-core": "^6.5.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.5.2",
+    "babel-preset-es2015": "^6.3.13",
+    "babelify": "^7.2.0",
+    "browserify": "^13.0.0",
     "chai": "^3.2.0",
     "chai-as-promised": "^5.0.0",
     "eslint": "^1.2.0",
     "mocha": "^2.4.5",
     "node-localstorage": "^1.1.2",
-    "sinon": "^1.14.1"
+    "sinon": "^1.14.1",
+    "uglifyify": "^3.0.1"
   },
   "dependencies": {
-    "babel": "^5.8.19",
     "isomorphic-fetch": "^2.2.1",
     "kinto": "^1.2.0",
     "lru-cache": "^4.0.0",
