@@ -4,7 +4,8 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "tdd": "node_modules/.bin/mocha -w --compilers js:babel/register 'tests/*_test.js'"
+    "tdd": "node_modules/.bin/mocha -w --compilers js:babel/register 'tests/*_test.js'",
+    "test": "node_modules/.bin/mocha --compilers js:babel/register 'tests/*_test.js'"
   },
   "repository": {
     "type": "git",
@@ -26,11 +27,15 @@
     "chai-as-promised": "^5.0.0",
     "eslint": "^1.2.0",
     "mocha": "^2.4.5",
+    "node-localstorage": "^1.1.2",
     "sinon": "^1.14.1"
   },
   "dependencies": {
     "babel": "^5.8.19",
+    "isomorphic-fetch": "^2.2.1",
     "kinto": "^1.2.0",
-    "lru-cache": "^4.0.0"
+    "lru-cache": "^4.0.0",
+    "md5": "^2.0.0",
+    "uuid": "^2.0.1"
   }
 }
