@@ -12,9 +12,9 @@ chai.should();
 chai.config.includeStack = true;
 
 const root = typeof window === "object" ? window : global;
-var localStorage;
+
 var LocalStorage = require('node-localstorage').LocalStorage;
-localStorage = new LocalStorage('./lib/localStorage');
+var localStorage = new LocalStorage('./lib/localStorage');
 
 
 describe("discovery library", () => {
@@ -27,13 +27,13 @@ describe("discovery library", () => {
   afterEach(() => {
     sandbox.restore();
   });
-
+  
   describe("getUserIDHash", () => {
     it("should return the same hash for the same userid", () => {
       const hash = getUserIDHash("shweta");
       expect(hash).to.eql(getUserIDHash("shweta"));
     });
-
+    
     it("should return different hashes for different values", () => {
       const hash = getUserIDHash("shweta");
       expect(hash).to.not.eql(getUserIDHash("alexis"));
@@ -44,301 +44,162 @@ describe("discovery library", () => {
       expect(hash).to.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
     });
   });
-
+  
   describe("registerUserURL", () => {
 
     const centralRepositoryURL = "http://central.kinto-storage.com/v1";
     const headers = {'Authorization': 'Bearer 1234567'};
-    let userStorageURL;
+    const userStorageURL = "https://my-kinto-instance.com/v1";
 
-    describe("With an already existing user URL", () => {
-      userStorageURL = "https://my-kinto-instance.com/v1";
-      beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
-          data: {url: userStorageURL}
-        }, {}));
-      });
-
-      it("should return the existing URL", () => {
-        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .should.become(userStorageURL);
-      });
-    });
-
-    describe("when server returns a 5xx", () => {
-      userStorageURL = "https://my-kinto-instance.com/v1";
-      const defaultServer = "https://default-kinto-instance.com/v1"
-
-
-      it("should return an error in case of 501 ", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(501, {
-          data: {url: userStorageURL}
-          }, {} ));
-        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .should.be.rejectedWith(Error);
-      })
-
-      it("should return an error in case of 500", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(500, {
-          data: {url: userStorageURL}
-          }, {} ));
-        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .should.be.rejectedWith(Error);
-      })
-
-      it("should return an error in case of 503", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(503, {
-          data: {url: userStorageURL}
-          }, {} ));
-        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .should.be.rejectedWith(Error);
-      })
-     });
-
-
-         describe("does not fit in any case", () => {
-           const defaultServer = "https://default-kinto-instance.com/v1"
-           beforeEach(() => {
-             sandbox.stub(root, "fetch").returns(fakeServerResponse(550, { //any response apart from the if block cases
-               data: {url: userStorageURL}
-             }, {}));
-           });
-
-           it("should reject promise with error message", () => {
-             return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-             .should.be.rejectedWith(Error);
-           });
-         });
-
-    describe("if headers are empty", () => {
-      userStorageURL = "https://my-kinto-instance.com/v1";
-      var headers = {};
-      it("should return an error message", () => {
-        registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .should.become(Error);
-      });
-    });
-
-    describe("When there is already a cached value", () => {
-      var key = 'kinto:server-url:' + 'userID';
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      beforeEach(() => {
-        localStorage.setItem(key, userStorageURL);
-      });
-    afterEach(() => {
-      localStorage.removeItem(key);
-    });
-
-      it("should return the cachedURL", () => {
-        return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-        .should.become(localStorage.getItem(key));
-      });
-    });
-
-    describe("When there is already a cached value, fetch is not entered", () => {
-      var key = 'kinto:server-url:' + 'userID';
-      const defaultServer = "https://default-kinto-instance.com/v1";
-      var cachedURL;
-      beforeEach(() => {
-        localStorage.setItem(key, "www.abcdefg.com");
-        cachedURL = localStorage.getItem(key);
-      });
-    afterEach(() => {
-      localStorage.removeItem(key);
-    });
-
-      it("should return the cachedURL", () => {
-        return registerUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.become(cachedURL);
-      });
-    });
-
-
-  describe("Invalid headers", () => {
-    userStorageURL = "https://my-kinto-instance.com/v1";
-
-    beforeEach(() => {
-      sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {
+    it("should set the new URL.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
         data: {url: userStorageURL}
       }, {}));
+      registerUserURL("userID", centralRepositoryURL, headers,
+                             userStorageURL, localStorage)
+        .should.become(userStorageURL);
     });
 
+    it("should return an error in case of 401.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {}, {} ));
+      registerUserURL("userID", centralRepositoryURL, headers,
+                             userStorageURL, localStorage)
+        .should.be.rejectedWith(Error, /Invalid Authentication headers./);
+    });
 
-    it("should reject promise with error message", () => {
-      return registerUserURL("userID", centralRepositoryURL, headers, userStorageURL)
-      .should.be.rejectedWith(Error);
+    it("should return an error in case of 500.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(500, {}, {} ));
+      registerUserURL("userID", centralRepositoryURL, headers,
+                             userStorageURL, localStorage)
+        .should.be.rejectedWith(Error, /Server not available./);
+    });
+
+    it("should return an error in case of 503.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(503, {}, {} ));
+      registerUserURL("userID", centralRepositoryURL, headers,
+                             userStorageURL, localStorage)
+        .should.be.rejectedWith(Error, /Server not available./);
+    });
+    
+    it("should reject an error in case of 403.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(403, {}, {} ));
+      registerUserURL("userID", centralRepositoryURL, headers, 
+                             userStorageURL, localStorage)
+        .should.be.rejectedWith(Error, /Central repository not correctly configured./);
+    });
+
+    it("should return an error message if headers are empty", () => {
+      registerUserURL("userID", centralRepositoryURL, {},
+                      userStorageURL, localStorage)
+        .should.become(Error, /Missing Authorization header./);
     });
   });
-});
 
   describe("retrieveUserURL", () => {
 
     const centralRepositoryURL = "http://central.kinto-storage.com/v1";
     const headers = {'Authorization': 'Bearer 1234567'};
-    let userStorageURL;
+    const userStorageURL = "https://my-kinto-instance.com/v1";
+    const defaultServer = "https://default-kinto-instance.com/v1"
 
-    describe("if headers are empty", () => {
-      userStorageURL = "https://my-kinto-instance.com/v1";
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      var headers = {};
-      it("should return an error message", () => {
-        retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.become(Error);
-      });
+    it("should return an error message if headers are empty.", () => {
+      retrieveUserURL("userID", centralRepositoryURL, {}, defaultServer,
+                      localStorage)
+        .should.become(Error, /Missing Authorization header./);
     });
 
-    describe("when server returns a 5xx", () => {
-      userStorageURL = "https://my-kinto-instance.com/v1";
-      const defaultServer = "https://default-kinto-instance.com/v1"
+    it("should return an error in case of 401.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {}, {} ));
+      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                      localStorage)
+        .should.be.rejectedWith(Error, /Invalid Authentication headers./);
+    });
+
+    it("should return an error in case of 500.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(500, {}, {} ));
+      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                      localStorage)
+        .should.be.rejectedWith(Error, /Server not available./);
+    });
+
+    it("should return an error in case of 503.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(503, {}, {} ));
+      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                      localStorage)
+        .should.be.rejectedWith(Error, /Server not available./);
+    });
+    
+    it("should reject an error in case of 403.", () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(403, {}, {} ));
+      retrieveUserURL("userID", centralRepositoryURL, headers,  defaultServer,
+                      localStorage)
+        .should.be.rejectedWith(Error, /Central repository not correctly configured./);
+    });
 
 
-      it("should return an error in case of 501 ", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(501, {
-          data: {url: userStorageURL}
-          }, {} ));
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.be.rejectedWith(Error);
-      })
-
-      it("should return an error in case of 500", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(500, {
-          data: {url: userStorageURL}
-          }, {} ));
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.be.rejectedWith(Error);
-      })
-
-      it("should return an error in case of 503", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(503, {
-          data: {url: userStorageURL}
-          }, {} ));
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.be.rejectedWith(Error);
-      })
-     });
-
-
-
-    describe("With an already existing user URL", () => {
-      userStorageURL = "https://my-kinto-instance.com/v1";
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
-          data: {url: userStorageURL}
-        }, {}));
-      });
-
-
-      it("should return the existing URL", () => {
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
+    it("should return the existing user URL.",  () => {
+      sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
+        data: {url: userStorageURL}
+      }, {}));
+      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                     localStorage)
         .should.become(userStorageURL);
-      });
     });
 
-    describe("without existing url", () => {
-      userStorageURL = "https://my-kinto-instance.com/v1";
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(404, {
-          data: {url: userStorageURL}
-        }, {}));
-      });
+    it("should return the defaultServer in case an user URL was not found.",
+       () => {
+         sandbox.stub(root, "fetch").returns(fakeServerResponse(404, {}, {}));
+         retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                         localStorage)
+           .should.become(defaultServer);
+       });
 
+    it("should return the defaultServer in case a permission error occured.",
+       () => {
+         sandbox.stub(root, "fetch").returns(fakeServerResponse(403, {}, {}));
+         retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                         localStorage)
+           .should.become(defaultServer);
+       });
 
-      it("should return the default URL", () => {
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.become(defaultServer);
-      });
+    it("should return the cached value in case we have it.", () => {
+      const key = 'kinto:server-url:' + 'userID';
+      const cachedValue = "https://my-cached-kinto-instance.com/v1"
+      localStorage.setItem(key, cachedValue);
+      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                      localStorage)
+        .should.become(cachedValue);
     });
 
-    describe("When there is already a cached value", () => {
-      var key = 'kinto:server-url:' + 'userID';
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      beforeEach(() => {
-        localStorage.setItem(key, userStorageURL);
-      });
-    afterEach(() => {
-      localStorage.removeItem(key);
+    it("should not called fetch in case we have a cached value.", () => {
+      const key = 'kinto:server-url:' + 'userID';
+      const cachedValue = "https://my-cached-kinto-instance.com/v1"
+      const stubFetch = sandbox.stub(root, "fetch").returns(
+        fakeServerResponse(403, {}, {})
+      );
+      localStorage.setItem(key, cachedValue);
+      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+                      localStorage)
+        .should.become(cachedValue);
+      expect(stubFetch.called).eql(false);
     });
 
-      it("should return the cachedURL", () => {
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.become(localStorage.getItem(key));
-      });
+    it("should raise an error if the defaultServer is not defined.", () => {
+      retrieveUserURL("userID", centralRepositoryURL, headers, undefined,
+                      localStorage)
+        .should.be.rejectedWith(Error, /defaultServer should be defined./);
     });
 
-    describe("When there is already a cached value, fetch is not entered", () => {
-      var key = 'kinto:server-url:' + 'userID';
-      const defaultServer = "https://default-kinto-instance.com/v1";
-      var cachedURL;
-      beforeEach(() => {
-        localStorage.setItem(key, "www.abcdefg.com");
-        cachedURL = localStorage.getItem(key);
-      });
-    afterEach(() => {
-      localStorage.removeItem(key);
+    it("should raise an error if the defaultServer is empty.", () => {
+      retrieveUserURL("userID", centralRepositoryURL, headers, "",
+                      localStorage)
+        .should.be.rejectedWith(Error, /defaultServer should be defined./);
     });
 
-      it("should return the cachedURL", () => {
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.become(cachedURL);
-      });
+    it("should raise an error if the defaultServer is null.", () => {
+      retrieveUserURL("userID", centralRepositoryURL, headers, null,
+                      localStorage)
+        .should.be.rejectedWith(Error, /defaultServer should be defined./);
     });
-
-    describe("First time access or error 403", () => {
-
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(403, {
-          data: {url: userStorageURL}
-        }, {}));
-      });
-
-
-      it("should return the default URL", () => {
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.become(defaultServer);
-      });
-    });
-
-    describe("Invalid headers", () => {
-
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {
-          data: {url: userStorageURL}
-        }, {}));
-      });
-
-
-      it("should reject promise with error message", () => {
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.be.rejectedWith(Error);
-      });
-    });
-
-
-    describe("does not fit in any case", () => {
-      const defaultServer = "https://default-kinto-instance.com/v1"
-      beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(550, { //any response apart from the if block cases
-          data: {url: userStorageURL}
-        }, {}));
-      });
-
-      it("should reject promise with error message", () => {
-        return retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer)
-        .should.be.rejectedWith(Error);
-      });
-    });
-
-    describe("if default server is null", () => {
-      it("should return message: default server is null", () => {
-        const message = retrieveUserURL("userID", centralRepositoryURL, headers,"" )
-         expect(message).to.eql("default server is null");
-      });
-    });
-
-
   });
 });
