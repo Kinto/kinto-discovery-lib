@@ -42,8 +42,6 @@
   },
   "dependencies": {
     "isomorphic-fetch": "^2.2.1",
-    "kinto": "^1.2.0",
-    "lru-cache": "^4.0.0",
     "md5": "^2.0.0",
     "uuid": "^2.0.1"
   }
