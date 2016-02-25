@@ -2,9 +2,11 @@
   "name": "kinto-discovery",
   "version": "0.0.1",
   "description": "",
-  "main": "lib/index.js",
+  "main": "npm/index.js",
   "scripts": {
+    "build": "node_modules/.bin/babel -d npm/ lib/",
     "dist": "mkdir -p dist && rm -f dist/*.* && node_modules/.bin/browserify -s KintoDiscovery -g uglifyify -e lib/index.js -o dist/kinto-discovery.min.js -t [ babelify ]",
+    "publish-to-npm": "npm run build && npm run dist && npm publish",
     "tdd": "npm run test -- --watch",
     "test": "node_modules/.bin/babel-node node_modules/.bin/_mocha 'tests/**/*_test.js'"
   },
