@@ -27,13 +27,13 @@ describe("discovery library", () => {
   afterEach(() => {
     sandbox.restore();
   });
-  
+
   describe("getUserIDHash", () => {
     it("should return the same hash for the same userid", () => {
       const hash = getUserIDHash("shweta");
       expect(hash).to.eql(getUserIDHash("shweta"));
     });
-    
+
     it("should return different hashes for different values", () => {
       const hash = getUserIDHash("shweta");
       expect(hash).to.not.eql(getUserIDHash("alexis"));
@@ -44,7 +44,7 @@ describe("discovery library", () => {
       expect(hash).to.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
     });
   });
-  
+
   describe("registerUserURL", () => {
 
     const centralRepositoryURL = "http://central.kinto-storage.com/v1";
@@ -80,10 +80,10 @@ describe("discovery library", () => {
                              userStorageURL, localStorage)
         .should.be.rejectedWith(Error, /Server not available./);
     });
-    
+
     it("should reject an error in case of 403.", () => {
       sandbox.stub(root, "fetch").returns(fakeServerResponse(403, {}, {} ));
-      registerUserURL("userID", centralRepositoryURL, headers, 
+      registerUserURL("userID", centralRepositoryURL, headers,
                              userStorageURL, localStorage)
         .should.be.rejectedWith(Error, /Central repository not correctly configured./);
     });
@@ -128,7 +128,7 @@ describe("discovery library", () => {
                       localStorage)
         .should.be.rejectedWith(Error, /Server not available./);
     });
-    
+
     it("should reject an error in case of 403.", () => {
       sandbox.stub(root, "fetch").returns(fakeServerResponse(403, {}, {} ));
       retrieveUserURL("userID", centralRepositoryURL, headers,  defaultServer,
@@ -163,22 +163,22 @@ describe("discovery library", () => {
        });
 
     it("should return the cached value in case we have it.", () => {
-      const key = 'kinto:server-url:' + 'userID';
+      const key = 'kinto:server-url:' + centralRepositoryURL +  'userID';
       const cachedValue = "https://my-cached-kinto-instance.com/v1"
       localStorage.setItem(key, cachedValue);
-      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+      retrieveUserURL("userID", "https://centralRepositoryURLcom/v1", headers, defaultServer,
                       localStorage)
         .should.become(cachedValue);
     });
 
     it("should not called fetch in case we have a cached value.", () => {
-      const key = 'kinto:server-url:' + 'userID';
+      const key = 'kinto:server-url:' + "https://centralRepositoryURL.com/v1" +  'userID';
       const cachedValue = "https://my-cached-kinto-instance.com/v1"
       const stubFetch = sandbox.stub(root, "fetch").returns(
         fakeServerResponse(403, {}, {})
       );
       localStorage.setItem(key, cachedValue);
-      retrieveUserURL("userID", centralRepositoryURL, headers, defaultServer,
+      retrieveUserURL("userID", "https://centralRepositoryURL.com/v1", headers, defaultServer,
                       localStorage)
         .should.become(cachedValue);
       expect(stubFetch.called).eql(false);
